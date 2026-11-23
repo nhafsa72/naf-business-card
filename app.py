@@ -195,46 +195,8 @@ def main():
 
 
 def render_card(st, data):
-    esc = html.escape
-    st.markdown(f"""<style>
-    .stApp {{ background: {data['background']}; color: {data['foreground']}; }}
-    .block-container {{max-width:560px;padding-top:2.5rem;padding-bottom:2rem;}}
-    .brand {{text-align:center;padding:1rem 0 1.7rem;}}
-    .brand img {{width:170px;height:170px;object-fit:contain;border-radius:50%;background:white;padding:12px;}}
-    .monogram {{font:70px Georgia,serif;color:{data['accent']};margin:0;}}
-    .brand h1 {{font:36px Georgia,serif;color:{data['foreground']};margin:20px 0 14px;}}
-    .tagline {{font:italic 23px/1.35 Georgia,serif;color:{data['accent']};}}
-    .description {{font-size:17px;line-height:1.7;max-width:410px;margin:20px auto 0;}}
-    .card-link {{display:block;background:#fffdf9;color:{data['foreground']} !important;text-decoration:none !important;border:1px solid #0002;border-radius:12px;padding:18px 22px;margin:12px 0;font-size:17px;}}
-    .card-link:hover {{box-shadow:0 3px 12px #0001;}}
-    .card-link:focus-visible {{outline:3px solid {data['accent']};outline-offset:3px;}}
-    .contact-link {{background:{data['accent']};color:#fff !important;}}
-    </style>""", unsafe_allow_html=True)
-    logo = f'<img src="{esc(data["logo"], quote=True)}" alt="Business logo">' if data["logo"] else '<div class="monogram">NAF</div>'
-    st.markdown(f'<div class="brand">{logo}<h1>{esc(data["name"])}</h1><p class="tagline">{esc(data["tagline"])}</p><p class="description">{esc(data["description"])}</p></div>', unsafe_allow_html=True)
-    def link(label, url, primary=False):
-        st.markdown(f'<a class="card-link {"contact-link" if primary else ""}" href="{esc(url, quote=True)}" target="_blank" rel="noopener noreferrer">{esc(label)}</a>', unsafe_allow_html=True)
-    if data["email"]:
-        link("Email to order", "mailto:" + quote(data["email"], safe="@.+") + "?subject=NAF%20Order%20Inquiry", True)
-    if data["phone"]:
-        link("Call us", "tel:" + re.sub(r"[^+\d]", "", data["phone"]))
-    for row in data["links"]:
-        if row["visible"]:
-            link(row["label"], row["url"])
-    st.download_button("Save contact", vcard(data), "NAF-by-Nafees.vcf", "text/vcard", use_container_width=True)
-    if data["apple_wallet"]:
-        st.link_button("Add to Apple Wallet", data["apple_wallet"], use_container_width=True)
-    if data["samsung_wallet"]:
-        st.link_button("Add to Samsung Wallet", data["samsung_wallet"], use_container_width=True)
-    if data["public_url"]:
-        with st.expander("Share this card"):
-            import qrcode
-            output = io.BytesIO()
-            qrcode.make(data["public_url"]).save(output, format="PNG")
-            st.image(output.getvalue(), width=230)
-            st.code(data["public_url"], language=None)
-            st.download_button("Download QR code", output.getvalue(), "NAF-QR.png", "image/png")
-    st.caption("A little tradition. A little sparkle. All you.")
+    from card_design import render_card as render_branded_card
+    render_branded_card(st, data, vcard)
 
 
 def render_admin(st, store, settings):
