@@ -50,5 +50,17 @@
       "question": "How should I store my henna cones?",
       "answer": "Message us for the storage instructions and ingredients for the specific cone before ordering."
     }
-  ]
+  ],
+  "upcoming_event": {
+    "visible": true,
+    "name": "DS Grand Bazaar",
+    "date": "2026-12-06",
+    "start_time": "11:00",
+    "end_time": "19:00",
+    "timezone": "America/Chicago",
+    "venue": "Frisco Hall Event Center",
+    "address": "5353 Independence Pkwy, Frisco, TX 75035",
+    "booth": "9",
+    "details_url": ""
+  }
 }

@@ -10,6 +10,7 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 EXTRA = {
+    'upcoming_event': {"visible":False,"name":"","date":"","start_time":"11:00","end_time":"19:00","timezone":"America/Chicago","venue":"","address":"","booth":"","details_url":""},
     'announcement': {'text': '', 'visible': False, 'expires': ''},
     'products': [],
     'delivery': {
@@ -39,6 +40,24 @@ def clean_extra(data, https_url):
     result['announcement'] = {'text': text(note.get('text',''),240), 'visible': bool(note.get('visible',False)), 'expires': text(note.get('expires',''),10)}
     if result['announcement']['expires']:
         datetime.strptime(result['announcement']['expires'], '%Y-%m-%d')
+    item=result['upcoming_event']
+    if not isinstance(item,dict):
+        raise ValueError('Event details must be an object.')
+    clean={k:text(item.get(k,v),500 if k=='address' else 300) for k,v in EXTRA['upcoming_event'].items() if k!='visible'}
+    clean['visible']=bool(item.get('visible',False))
+    if clean['date']:
+        datetime.strptime(clean['date'],'%Y-%m-%d')
+    for field in ('start_time','end_time'):
+        datetime.strptime(clean[field],'%H:%M')
+    if clean['end_time']<=clean['start_time']:
+        raise ValueError('Event end time must be after its start time on the same date.')
+    if clean['timezone'] not in ['America/Chicago','America/New_York','America/Denver','America/Los_Angeles','America/Phoenix','Pacific/Honolulu','America/Anchorage']:
+        raise ValueError('Choose a supported event time zone.')
+    if clean['details_url']:
+        clean['details_url']=https_url(clean['details_url'])
+    if clean['visible'] and not all(clean[k] for k in ('name','date','venue','address')):
+        raise ValueError('A visible event needs its name, date, venue and address.')
+    result['upcoming_event']=clean
     result['delivery'] = {k:text(result['delivery'].get(k,'')) for k in EXTRA['delivery']}
     if not isinstance(result['order_steps'],list) or len(result['order_steps']) > 6:
         raise ValueError('Use up to six ordering steps.')
@@ -90,6 +109,14 @@ def product_photo(upload):
 
 def owner_fields(st,data,version):
     data.update({k:copy.deepcopy(data.get(k,v)) for k,v in EXTRA.items()})
+    with st.expander('Upcoming stall / pop-up event'):
+        e=data['upcoming_event']
+        e['visible']=st.checkbox('Show upcoming event on Home',value=e['visible'])
+        for key,label in [('name','Event name'),('date','Event date (YYYY-MM-DD)'),('start_time','Start time (24-hour HH:MM)'),('end_time','End time (24-hour HH:MM)'),('venue','Venue name'),('address','Full venue address'),('booth','Booth / stall number'),('details_url','Event details HTTPS link (optional)')]:
+            e[key]=st.text_input(label,value=e[key],key=f'event_{key}_{version}')
+        zones=['America/Chicago','America/New_York','America/Denver','America/Los_Angeles','America/Phoenix','Pacific/Honolulu','America/Anchorage']
+        e['timezone']=st.selectbox('Event time zone',zones,index=zones.index(e['timezone']),key=f'event_timezone_{version}')
+        st.caption('Directions use the venue and address. The event hides automatically after its end time in the selected time zone.')
     with st.expander('Announcement / holiday deadline'):
         a=data['announcement']
         a['visible']=st.checkbox('Show announcement',value=a['visible'])

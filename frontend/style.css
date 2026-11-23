@@ -7,3 +7,16 @@ header .tagline{display:none}header{padding-top:12px;padding-bottom:12px}.hero{p
 /* Let the component fill the actual phone viewport, including Safari's dynamic bars. */
 html,body{height:100%;overflow:hidden}.shell{height:100vh;height:100dvh;max-width:none;width:100%;border:0;border-radius:0;box-shadow:none}.preview .shell{height:600px;max-width:520px;border:1px solid #d9c6ac;border-radius:22px}.dock{padding-bottom:max(8px,env(safe-area-inset-bottom))}main{min-height:0;flex:1 1 0}
 
+
+/* Compact upcoming pop-up card, confined to Home's scrollable content. */
+.event-card{margin:12px 0 10px;padding:12px;background:linear-gradient(125deg,#f3e2e3,#f7eee0);border:1px solid #d9c0a0;border-radius:13px}
+.event-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.event-eyebrow{font-size:10px;letter-spacing:.12em;color:#70552c;font-weight:600}
+.event-booth{font-size:11px;background:#70552c;color:#fff;padding:4px 9px;border-radius:20px;white-space:nowrap}
+.event-body{display:flex;gap:11px;align-items:flex-start}
+.event-date-badge{flex-shrink:0;width:45px;border:1px solid #dac8b0;background:#fffaf4;border-radius:9px;text-align:center;padding:5px 3px;color:#70552c}
+.event-date-badge span{font-size:10px;display:block;letter-spacing:.08em}.event-date-badge strong{font:600 29px/1.1 'Cormorant Garamond',Georgia,serif}
+.event-copy{min-width:0}.event-copy h3{font:600 23px/1.15 'Cormorant Garamond',Georgia,serif;margin:0 0 4px;color:#302722}
+.event-copy p{font-size:12px;line-height:1.5;color:#655047;margin:0 0 3px}#event-venue{font-weight:600}#event-address{font-size:11px}
+.event-actions{display:flex;gap:8px;margin-top:8px}.event-actions a{flex:1;min-height:42px;display:grid;place-items:center;border:1px solid #bba27b;border-radius:8px;background:#fffdf9;color:#674d2d;font-size:12px;font-weight:500;text-align:center;padding:7px}
+.event-actions a:hover{background:#f8f0e5}
