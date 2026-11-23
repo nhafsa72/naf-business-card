@@ -38,9 +38,8 @@ def render_card(st, data, vcard):
     st.markdown('<div class="naf-topline"><span>NAF BY NAFEES</span><span>THE LITTLE DETAILS</span></div>', unsafe_allow_html=True)
     st.markdown('''<section class="naf-hero"><div class="hero-wash wash-one"></div><div class="hero-wash wash-two"></div><span class="sparkle sparkle-one">✦</span><span class="sparkle sparkle-two">✧</span><div class="logo-medallion">'''+logo+'''</div><p class="naf-kicker">JEWELRY · HENNA · ACCESSORIES</p><h1>'''+esc(data['name'])+'''</h1><div class="fine-divider"><span></span>✧<span></span></div><p class="naf-tagline">'''+esc(data['tagline'])+'''</p><p class="naf-description">'''+esc(data['description'])+'''</p></section>''', unsafe_allow_html=True)
     st.markdown('<div class="naf-section-label">A LITTLE SOMETHING FOR EVERY OCCASION</div><div class="naf-chips"><span>Bangles</span><span>Jhumkas</span><span>Henna</span><span>Hair accessories</span></div>', unsafe_allow_html=True)
-    if data['email']:
-        url = 'mailto:'+quote(data['email'], safe='@.+')+'?subject=NAF%20Order%20Inquiry'
-        st.markdown('<a class="naf-order" href="'+esc(url, quote=True)+'"><span class="naf-icon">'+icon('email')+'</span><span><strong>Find your next little favorite</strong><small>Email us to order or ask a question</small></span><span class="order-label">LET’S TALK</span></a>', unsafe_allow_html=True)
+    st.markdown('<p class="naf-description" style="text-align:center;margin:0 auto 20px">Explore our social media platforms to discover our latest styles and variety. To place an order, message us on Instagram.</p>', unsafe_allow_html=True)
+    st.markdown('<a class="naf-order" href="https://www.instagram.com/nafbynafees/" target="_blank" rel="noopener noreferrer"><span class="naf-icon">'+icon('instagram')+'</span><span><strong>Message us on Instagram</strong><small>For orders and product inquiries</small></span></a>', unsafe_allow_html=True)
     st.markdown('<div class="naf-section-heading"><span></span><h2>Let’s stay connected</h2><span></span></div>', unsafe_allow_html=True)
     rows = []
     for row in data['links']:
@@ -55,9 +54,6 @@ def render_card(st, data, vcard):
     st.markdown('<div class="naf-socials">'+''.join(rows)+'</div>', unsafe_allow_html=True)
     st.markdown('<div class="naf-keep"><span class="naf-kicker">KEEP US CLOSE</span><h2>A little sparkle.<br><em>Always within reach.</em></h2><p>Save NAF to your contacts for your next occasion.</p></div>', unsafe_allow_html=True)
     st.download_button('＋  Save NAF to contacts', vcard(data), 'NAF-by-Nafees.vcf', 'text/vcard', use_container_width=True)
-    for field, label in [('apple_wallet','Add to Apple Wallet'), ('samsung_wallet','Add to Samsung Wallet')]:
-        if data[field]:
-            st.link_button(label, data[field], use_container_width=True)
     if data['public_url']:
         with st.expander('Share a little sparkle · QR code'):
             import qrcode
