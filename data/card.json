@@ -62,5 +62,31 @@
     "address": "5353 Independence Pkwy, Frisco, TX 75035",
     "booth": "9",
     "details_url": ""
-  }
+  },
+  "upcoming_events": [
+    {
+      "visible": true,
+      "name": "DS Grand Bazaar",
+      "date": "2026-12-06",
+      "start_time": "11:00",
+      "end_time": "19:00",
+      "timezone": "America/Chicago",
+      "venue": "Frisco Hall Event Center",
+      "address": "5353 Independence Pkwy, Frisco, TX 75035",
+      "booth": "9",
+      "details_url": ""
+    },
+    {
+      "visible": true,
+      "name": "Chand Raat Mela",
+      "date": "2027-03-08",
+      "start_time": "12:00",
+      "end_time": "24:00",
+      "timezone": "America/Chicago",
+      "venue": "Serene Event Center",
+      "address": "2060 W Spring Creek Pkwy, Plano, TX 75023",
+      "booth": "2",
+      "details_url": ""
+    }
+  ]
 }

@@ -10,34 +10,56 @@ document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()
 document.querySelectorAll('[role=tab]').forEach(b=>b.addEventListener('keydown',e=>{const tabs=['home','collection','info','share'];let i=tabs.indexOf(activeTab);if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();setTab(tabs[(i+(e.key==='ArrowRight'?1:3))%4],true)}}));
 const icons={instagram:'<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/>',tiktok:'<path d="M14 3v12a4 4 0 1 1-4-4M14 3c0 4 3 6 6 6"/>',other:'<path d="m10 8 3-3a5 5 0 0 1 7 7l-3 3M14 16l-3 3a5 5 0 0 1-7-7l3-3M8 16l8-8"/>'};
 
-function updateEvent(item,now=new Date()){
-  const box=$('upcoming-event');box.hidden=true;
-  if(!item?.visible||!item.name||!item.date||!item.venue||!item.address)return;
-  const zone=item.timezone||'America/Chicago';
-  try{
-    const parts=new Intl.DateTimeFormat('en-US',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now);
-    const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));
-    if(p.year+'-'+p.month+'-'+p.day+'T'+p.hour+':'+p.minute>item.date+'T'+item.end_time)return;
-    const day=new Date(item.date+'T12:00:00Z');
-    $('event-month').textContent=day.toLocaleDateString('en-US',{month:'short',timeZone:'UTC'}).toUpperCase();
-    $('event-day').textContent=day.toLocaleDateString('en-US',{day:'numeric',timeZone:'UTC'});
-    $('event-name').textContent=item.name;
-    const clock=value=>{const [h,m]=value.split(':').map(Number);return (h%12||12)+(m?':'+String(m).padStart(2,'0'):'')+(h>=12?' PM':' AM')};
-    const label={'America/Chicago':'CT','America/New_York':'ET','America/Denver':'MT','America/Los_Angeles':'PT','America/Phoenix':'Arizona time','Pacific/Honolulu':'Hawaii time','America/Anchorage':'Alaska time'}[zone]||zone;
-    $('event-when').textContent=day.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:'UTC'})+' · '+clock(item.start_time)+'–'+clock(item.end_time)+' '+label;
-    $('event-venue').textContent=item.venue;$('event-address').textContent=item.address;
-    $('event-booth').textContent=item.booth?'STALL '+item.booth:'';$('event-booth').hidden=!item.booth;
-    $('event-directions').href='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(item.venue+', '+item.address);
-    const details=safeUrl(item.details_url);$('event-details').hidden=!details;if(details)$('event-details').href=details;
-    box.hidden=false;
-  }catch{box.hidden=true;}
+// Convert venue-local times to UTC, including daylight saving transitions.
+function eventInstant(date,time,zone){
+  const [y,m,d]=date.split('-').map(Number),[h,n]=time.split(':').map(Number);
+  const wall=Date.UTC(y,m-1,d,h,n);let instant=wall;
+  const fmt=new Intl.DateTimeFormat('en-US',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
+  for(let i=0;i<4;i++){const p=Object.fromEntries(fmt.formatToParts(new Date(instant)).map(x=>[x.type,x.value]));const represented=Date.UTC(+p.year,+p.month-1,+p.day,+p.hour,+p.minute,+p.second);const delta=wall-represented;instant+=delta;if(!delta)break;}
+  return new Date(instant);
 }
-setInterval(()=>{if(config)updateEvent(config.card.upcoming_event)},60000);
+function calendarText(item){
+  const zone=item.timezone||'America/Chicago';
+  const stamp=d=>d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
+  const esc=s=>String(s||'').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/;/g,'\\;').replace(/,/g,'\\,');
+  const uid=encodeURIComponent(item.name+'-'+item.date+'-'+item.booth)+'@naf-business-card.streamlit.app';
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//NAF by Nafees//Stall Events//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT','UID:'+uid,'DTSTAMP:'+stamp(new Date()),'DTSTART:'+stamp(eventInstant(item.date,item.start_time,zone)),'DTEND:'+stamp(eventInstant(item.date,item.end_time,zone)),'SUMMARY:'+esc(item.name+' - NAF by Nafees'),'LOCATION:'+esc(item.venue+', '+item.address),'DESCRIPTION:'+esc('Visit NAF by Nafees at Stall '+item.booth+'.\n'+(config?.card?.public_url||'https://naf-business-card.streamlit.app/')),'END:VEVENT','END:VCALENDAR'];
+  // RFC 5545 content lines are folded at 75 UTF-8 octets.
+  return lines.map(line=>{let folded='',count=0;for(const c of line){const size=new TextEncoder().encode(c).length;if(count+size>75){folded+='\r\n ';count=1;}folded+=c;count+=size;}return folded;}).join('\r\n')+'\r\n';
+}
+let calendarUrls=[];
+function updateEvents(card,now=new Date()){
+  calendarUrls.forEach(u=>URL.revokeObjectURL(u));calendarUrls=[];
+  const container=$('upcoming-events');container.replaceChildren();
+  const items=card.upcoming_events??(card.upcoming_event?[card.upcoming_event]:[]);
+  [...items].sort((a,b)=>(a.date+a.start_time).localeCompare(b.date+b.start_time)).forEach(item=>{
+    if(!item?.visible||!item.name||!item.date||!item.venue||!item.address)return;
+    try{
+      const zone=item.timezone||'America/Chicago';
+      if(now>=eventInstant(item.date,item.end_time,zone))return;
+      const day=new Date(item.date+'T12:00:00Z');
+      const box=text('aside','','event-card');box.setAttribute('aria-label',item.name+' stall event');
+      const top=text('div','','event-top');top.append(text('span','MEET US IN PERSON','event-eyebrow'));
+      if(item.booth)top.append(text('span','STALL '+item.booth,'event-booth'));
+      const body=text('div','','event-body'),badge=text('div','','event-date-badge'),copy=text('div','','event-copy');
+      badge.append(text('span',day.toLocaleDateString('en-US',{month:'short',timeZone:'UTC'}).toUpperCase()),text('strong',day.toLocaleDateString('en-US',{day:'numeric',timeZone:'UTC'})));
+      const clock=v=>{if(v==='24:00')return 'midnight';const [h,m]=v.split(':').map(Number);return (h%12||12)+(m?':'+String(m).padStart(2,'0'):'')+(h>=12?' PM':' AM')};
+      const label={'America/Chicago':'CT','America/New_York':'ET','America/Denver':'MT','America/Los_Angeles':'PT','America/Phoenix':'Arizona time','Pacific/Honolulu':'Hawaii time','America/Anchorage':'Alaska time'}[zone]||zone;
+      copy.append(text('h3',item.name),text('p',day.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:'UTC'})+' � '+clock(item.start_time)+'-'+clock(item.end_time)+' '+label),text('p',item.venue,'event-venue'),text('p',item.address,'event-address'));
+      body.append(badge,copy);const actions=text('div','','event-actions');
+      actions.append(anchor('Get Directions','https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(item.venue+', '+item.address),''));
+      const calendar=text('a','Add to Calendar');calendar.href=URL.createObjectURL(new Blob([calendarText(item)],{type:'text/calendar;charset=utf-8'}));calendarUrls.push(calendar.href);calendar.download=item.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.ics';actions.append(calendar);
+      const details=safeUrl(item.details_url);if(details)actions.append(anchor('Event Details',details,''));
+      box.append(top,body,actions);container.append(box);
+    }catch(error){console.warn('Unable to display event',error);}
+  });
+}
+setInterval(()=>{if(config)updateEvents(config.card)},60000);
 
 function draw(args){config=args;document.body.classList.toggle('preview',!!args.preview);const d=args.card;document.documentElement.style.setProperty('--ink',d.foreground);document.documentElement.style.setProperty('--accent',d.accent);document.documentElement.style.setProperty('--blush',d.background);$('name').textContent=d.name;$('tagline').textContent=d.tagline;$('description').textContent=d.description;
   const logo=$('logo');logo.replaceChildren();if(d.logo){const img=document.createElement('img');img.src=d.logo;img.alt=d.name+' logo';logo.append(img);}else{logo.innerHTML=args.flower;}
   const note=d.announcement||{};const expired=note.expires&&new Date(note.expires+'T23:59:59Z')<new Date();$('announcement').hidden=!(note.visible&&note.text&&!expired);$('announcement').textContent=note.text||'';
-  updateEvent(d.upcoming_event);
+  updateEvents(d);
   const socials=$('socials');socials.replaceChildren();let instagram='https://www.instagram.com/nafbynafees/';(d.links||[]).filter(r=>r.visible).forEach(row=>{if(!safeUrl(row.url))return;const key=row.url.includes('instagram.com')?'instagram':row.url.includes('tiktok.com')?'tiktok':'other';if(key==='instagram')instagram=row.url;const a=anchor('',row.url,'social');const span=document.createElement('span');span.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true">'+icons[key]+'</svg>';a.append(span,text('span',row.label));socials.append(a);});
   $('order').href=instagram;$('order').onclick=()=>event('social');$('contact').href='data:text/vcard;base64,'+args.vcard;$('contact').onclick=()=>event('contact');
   const grid=$('products');grid.replaceChildren();const products=(d.products||[]).filter(p=>p.visible);products.forEach(p=>{const item=document.createElement('article');item.className='product';if(p.image){const img=document.createElement('img');img.src=p.image;img.alt=p.name;img.loading='lazy';item.append(img);}else item.append(text('div','NAF','no-photo'));const body=document.createElement('div');body.className='body';body.append(text('h3',p.name));if(p.price)body.append(text('div',p.price,'price'));body.append(text('span',p.status,'badge'+(p.status==='Sold out'?' sold':'')));if(p.details)body.append(text('p',p.details));if(p.url)body.append(anchor('View product',p.url,'','product'));else if(p.status==='Available')body.append(anchor('Ask on Instagram',instagram,'','product'));item.append(body);grid.append(item);});if(!products.length){const empty=text('div','Discover the latest bangles, jhumkas, henna, and accessories on our social platforms.','empty');empty.append(anchor('Browse on Instagram',instagram,''));grid.append(empty);}
