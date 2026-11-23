@@ -11,13 +11,15 @@ def flower():
 
 def render_card(st,data,vcard,store=None,preview=False):
     import streamlit.components.v1 as components
-    st.markdown("""<style>
-    .stApp{background:radial-gradient(ellipse at 10% 0%,#ecd0d5,transparent 65%),#f5efea;color:#302722}
-    header[data-testid="stHeader"]{background:transparent!important}
-    [data-testid="stMain"]{overflow-y:auto!important;overflow-x:hidden!important}
-    [data-testid="stMainBlockContainer"]{max-width:560px!important;padding:12px 12px 10px!important;margin:0 auto!important;flex-shrink:0!important}
-    iframe[title*="naf_compact_card"]{border:0!important}
-    </style>""",unsafe_allow_html=True)
+    if not preview:
+        st.markdown("""<style>
+        .stApp{background:#fffdf9;color:#302722}
+        header[data-testid="stHeader"]{display:none!important}
+        [data-testid="stMain"]{overflow:hidden!important;height:100vh!important;height:100dvh!important}
+        [data-testid="stMainBlockContainer"]{max-width:560px!important;padding:0!important;margin:0 auto!important;flex-shrink:0!important;height:100vh!important;height:100dvh!important}
+        [data-testid="stVerticalBlock"]{gap:0!important}
+        iframe[title*="naf_compact_card"]{border:0!important;display:block!important;width:100%!important;height:100vh!important;height:100dvh!important}
+        </style>""",unsafe_allow_html=True)
     card=copy.deepcopy(data)
     if not card['logo']:
         for name in ['logo.png','assets/logo.png','Logo for web.png']:
