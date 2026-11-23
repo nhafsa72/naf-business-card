@@ -1,51 +1,55 @@
-# NAF by Nafees — fresh Python business card
+# NAF by Nafees — compact business hub
 
-This is a separate Streamlit project. It does not use or change your previous GitHub Pages card.
+Live card: https://naf-business-card.streamlit.app/
 
-## Files to upload to your new GitHub repository
+Owner panel: https://naf-business-card.streamlit.app/?page=admin
 
-- `app.py`
-- `requirements.txt`
-- `data/card.json` (keep it inside the `data` folder)
-- `.gitignore`
-- `README.md`
-- `secrets.example.toml` contains placeholders only and is safe to keep, but is not the active configuration.
+## Customer experience
 
-## Publish
+A compact mobile card with Home, Collection, Order Info and Share tabs. Instagram ordering and Save Contact remain available at the bottom. Each tab scrolls independently only when needed. The card includes business details, social links, ordering steps, delivery/payment/return information, FAQs and a downloadable QR code. No wallet or email-order buttons are shown.
 
-1. Create your new repository and upload the files above. Make sure the branch is `main`.
-2. In Streamlit Community Cloud, create an app from that repository. Set the main file to `app.py`. Deploy.
-3. The public business card works immediately with your current business email, Instagram, and TikTok. The initial logo is a text mark; upload your floral logo through the admin panel after setup.
+Delivery is across the United States, with no pickups. Orders ship within 3 days; transit time is additional. Payments are by Zelle or PayPal, arranged through Instagram. Returns are reviewed case by case.
 
-## Enable the private admin panel
+## Owner setup
 
-1. In GitHub Settings → Developer settings → Personal access tokens → Fine-grained tokens, generate a token limited to this new repository with Repository permissions → Contents: Read and write. Set an expiration you can maintain. Do not give access to all repositories.
-2. In Streamlit app settings → Secrets, copy `secrets.example.toml`, replacing the password, repository name, and token. Use a unique random admin password at least 16 characters long. Do not send or commit those values.
-3. Open `https://YOUR-APP.streamlit.app/?page=admin` and sign in. The admin uses password authentication; the URL alone does not unlock editing. For a larger team or public launch with stronger identity controls, replace this simple login with an identity provider and account allowlist.
-4. Add the actual published Streamlit address in the Published app URL field. Upload your original floral logo and click Save changes to GitHub.
-5. Return to the main app URL without `?page=admin` to view the card. Expand Share this card to download its QR code.
+Set these values in Streamlit Cloud app settings → Secrets. Never commit actual passwords or tokens:
 
-The account email used to sign into Streamlit can differ from the public business email.
+```toml
+admin_password = "YOUR-UNIQUE-RANDOM-PASSWORD-AT-LEAST-16-CHARACTERS"
+[github]
+repository = "nhafsa72/naf-business-card"
+branch = "main"
+token = "YOUR-FINE-GRAINED-GITHUB-TOKEN"
+```
 
-## How updates are saved
+Limit the token to this repository with Contents: Read and write permission. Set an expiration you can maintain. Public card data and anonymous aggregate totals are stored in this repository; do not put private customer information in the editor.
 
-The editor writes public card settings and the resized logo to `data/card.json` through GitHub's Contents API. Changes survive app restarts; the app does not depend on Streamlit's temporary local disk. The token remains in Streamlit Secrets. Each save creates a commit and can cause Streamlit to reload/redeploy the app. Keep code deployment in mind when saving during busy times.
+Without these secrets the public card works from bundled data, but owner saves and analytics recording are disabled. The owner password must be configured before the editor can be used.
 
-Saving uses the file SHA from when the editor loaded. If another session changes that file, saving fails rather than overwriting those changes. Use Reload saved card after resolving a conflict. Only one user should edit at a time. The public card loads the saved data on each fresh visit or rerun; already-open pages do not receive live updates.
+## Editing
 
-Without GitHub Secrets, the public card reads the initial bundled JSON, and admin saving is disabled. No silent temporary save is used. A token or configuration problem causes an error instead of replacing saved data with defaults.
+Sign into the owner panel. Upload your real NAF logo, or place it at logo.png in the repository root. A decorative floral placeholder appears until the original logo is supplied.
 
-## Wallet support — what is and is not included
+Add up to six real featured products with photos, USD prices, available sizes/details, product links, visibility, and Available/Sold out/Coming soon status. No example products are published as inventory. Unused slots stay hidden. Uploaded photos are compressed; keep the complete card under 900 KB.
 
-The app supports actual provider-issued Apple Wallet and Samsung Wallet links. Add them in the editor to show the corresponding buttons. The links must be tested on supported phones first. A Wallat profile/share link is not necessarily an Add to Wallet link; obtain the exact issuer-provided action URL.
+Edit delivery details, ordering steps and FAQs. Announcements can be shown/hidden and given an optional expiry date (UTC). Keep announcements short for the compact layout.
 
-This project does not create signed Apple `.pkpass` files, enroll your business with Samsung, bypass certificate requirements, or automatically update passes already saved on customers' phones. Those need a wallet issuer or separate signing and update service. Save Contact downloads a vCard to Contacts; it is not a wallet pass. There are no payments.
+Click Preview changes, review the interactive draft, then Publish preview. Drafts are session-only and do not reach customers until publication. Publish submits the exact preview, not any subsequent unpreviewed form changes. Discard preview removes it. Concurrent changes are protected by the GitHub file SHA; reload after a conflict.
 
-Use a stable public card URL as the QR destination inside an issued pass. Then new links on the webpage remain available without replacing the pass. Changing the text/artwork inside a previously saved wallet pass still needs the issuer's update mechanism.
+## Activity dashboard
 
-## Print and availability
+Counts approximate browser-session views, social link clicks, contact-download clicks, product-link clicks and QR-download clicks. It stores daily UTC totals only, with no IP addresses, customer names, contact information or persistent visitor IDs. It is not an exact unique-visitor count. Browser blockers and network/API failures may drop events. Preview interactions are not counted. Download a CSV in the owner panel. Totals begin after deployment, not retroactively.
 
-Generate a fresh QR only after setting and checking the final Streamlit URL. The QR remains usable while that URL remains available. Streamlit Community Cloud can sleep after inactivity, so visitors may see a wake-up delay. This app does not provide an always-on wallet update API.
+Analytics requires the GitHub token above and uses a separate data/analytics.json file. It is created on the first successful event. Activity and content updates create commits and are intended for modest business-card traffic. High traffic should move counters to a dedicated database. Token expiration, API limits or branch restrictions can prevent saving/counting. An analytics failure does not block customer navigation.
+
+## Files
+
+app.py: public/owner routing, authentication and card persistence.
+owner_features.py: product/business editors, validation and aggregate counters.
+card_design.py: Python wrapper for the compact custom component.
+frontend/: static HTML/CSS/JavaScript for the public card and event callbacks.
+data/card.json: public business details, photos and links.
+requirements.txt: Python dependencies.
 
 ## Local run
 
@@ -54,4 +58,4 @@ python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
-For local admin use, copy the example settings into `.streamlit/secrets.toml` and fill in your actual values. Keep that file out of Git.
+For local admin use, put the secrets above in .streamlit/secrets.toml and keep it out of Git. Streamlit Community Cloud can sleep after inactivity. Saved wallet passes are not issued by this app.
