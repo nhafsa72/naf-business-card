@@ -124,7 +124,7 @@ def owner_fields(st,data,version):
     events=[]
     for i in range(6):
         e=copy.deepcopy(saved_events[i] if i<len(saved_events) else EXTRA['upcoming_event'])
-        with st.expander(f"Event {i+1}"+(' � '+e['name'] if e['name'] else ' � empty')):
+        with st.expander(f"Event {i+1}"+(' · '+e['name'] if e['name'] else ' · empty')):
             e['visible']=st.checkbox('Show event on Home',value=e['visible'],key=f'event_visible_{i}_{version}')
             for key,label in [('name','Event name'),('date','Event date (YYYY-MM-DD)'),('start_time','Start time (24-hour HH:MM)'),('end_time','End time (24-hour HH:MM; 24:00 for midnight)'),('venue','Venue name'),('address','Full venue address'),('booth','Booth / stall number'),('details_url','Event details HTTPS link (optional)')]:
                 e[key]=st.text_input(label,value=e[key],key=f'event_{key}_{i}_{version}')
@@ -152,7 +152,7 @@ def owner_fields(st,data,version):
     saved=list(data['products']);products=[]
     for i in range(6):
         p=copy.deepcopy(saved[i]) if i<len(saved) else {'name':'','price':'','details':'','image':'','url':'','visible':False,'status':'Available'}
-        with st.expander(f"Product {i+1}"+(' � '+p['name'] if p['name'] else ' � empty')):
+        with st.expander(f"Product {i+1}"+(' · '+p['name'] if p['name'] else ' · empty')):
             p['name']=st.text_input('Product name',p['name'],key=f'pname_{i}_{version}')
             p['price']=st.text_input('Price (USD)',p['price'],key=f'pprice_{i}_{version}')
             p['details']=st.text_area('Short details / available sizes',p['details'],key=f'pdetails_{i}_{version}')

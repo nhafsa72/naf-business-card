@@ -23,7 +23,7 @@ function calendarText(item){
   const stamp=d=>d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
   const esc=s=>String(s||'').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/;/g,'\\;').replace(/,/g,'\\,');
   const uid=encodeURIComponent(item.name+'-'+item.date+'-'+item.booth)+'@naf-business-card.streamlit.app';
-  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//NAF by Nafees//Stall Events//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT','UID:'+uid,'DTSTAMP:'+stamp(new Date()),'DTSTART:'+stamp(eventInstant(item.date,item.start_time,zone)),'DTEND:'+stamp(eventInstant(item.date,item.end_time,zone)),'SUMMARY:'+esc(item.name+' - NAF by Nafees'),'LOCATION:'+esc(item.venue+', '+item.address),'DESCRIPTION:'+esc('Visit NAF by Nafees at Stall '+item.booth+'.\n'+(config?.card?.public_url||'https://naf-business-card.streamlit.app/')),'END:VEVENT','END:VCALENDAR'];
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//NAF by Nafees//Stall Events//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT','UID:'+uid,'DTSTAMP:'+stamp(new Date()),'DTSTART:'+stamp(eventInstant(item.date,item.start_time,zone)),'DTEND:'+stamp(eventInstant(item.date,item.end_time,zone)),'SUMMARY:'+esc(item.name+' — NAF by Nafees'),'LOCATION:'+esc(item.venue+', '+item.address),'DESCRIPTION:'+esc('Visit NAF by Nafees at Stall '+item.booth+'.\n'+(config?.card?.public_url||'https://naf-business-card.streamlit.app/')),'END:VEVENT','END:VCALENDAR'];
   // RFC 5545 content lines are folded at 75 UTF-8 octets.
   return lines.map(line=>{let folded='',count=0;for(const c of line){const size=new TextEncoder().encode(c).length;if(count+size>75){folded+='\r\n ';count=1;}folded+=c;count+=size;}return folded;}).join('\r\n')+'\r\n';
 }
@@ -45,7 +45,7 @@ function updateEvents(card,now=new Date()){
       badge.append(text('span',day.toLocaleDateString('en-US',{month:'short',timeZone:'UTC'}).toUpperCase()),text('strong',day.toLocaleDateString('en-US',{day:'numeric',timeZone:'UTC'})));
       const clock=v=>{if(v==='24:00')return 'midnight';const [h,m]=v.split(':').map(Number);return (h%12||12)+(m?':'+String(m).padStart(2,'0'):'')+(h>=12?' PM':' AM')};
       const label={'America/Chicago':'CT','America/New_York':'ET','America/Denver':'MT','America/Los_Angeles':'PT','America/Phoenix':'Arizona time','Pacific/Honolulu':'Hawaii time','America/Anchorage':'Alaska time'}[zone]||zone;
-      copy.append(text('h3',item.name),text('p',day.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:'UTC'})+' � '+clock(item.start_time)+'-'+clock(item.end_time)+' '+label),text('p',item.venue,'event-venue'),text('p',item.address,'event-address'));
+      copy.append(text('h3',item.name),text('p',day.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:'UTC'})+' · '+clock(item.start_time)+'–'+clock(item.end_time)+' '+label),text('p',item.venue,'event-venue'),text('p',item.address,'event-address'));
       body.append(badge,copy);const actions=text('div','','event-actions');
       actions.append(anchor('Get Directions','https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(item.venue+', '+item.address),''));
       const calendar=text('a','Add to Calendar');calendar.href=URL.createObjectURL(new Blob([calendarText(item)],{type:'text/calendar;charset=utf-8'}));calendarUrls.push(calendar.href);calendar.download=item.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.ics';actions.append(calendar);
