@@ -1,0 +1,54 @@
+{
+  "name": "NAF by Nafees",
+  "tagline": "A little tradition. A little sparkle. All you.",
+  "description": "Bangles, jhumkas, bracelets, henna cones, and hair accessories for everyday beauty and special occasions.",
+  "email": "nafbynafees@gmail.com",
+  "phone": "",
+  "public_url": "https://naf-business-card.streamlit.app/",
+  "background": "#F4E3E3",
+  "foreground": "#302722",
+  "accent": "#70552C",
+  "logo": "",
+  "apple_wallet": "",
+  "samsung_wallet": "",
+  "links": [
+    {
+      "label": "Instagram",
+      "url": "https://www.instagram.com/nafbynafees/",
+      "visible": true
+    },
+    {
+      "label": "TikTok",
+      "url": "https://www.tiktok.com/@nafbynafees",
+      "visible": true
+    }
+  ],
+  "announcement": {
+    "text": "",
+    "visible": false,
+    "expires": ""
+  },
+  "products": [],
+  "delivery": {
+    "area": "Delivery across the United States.",
+    "pickup": "Delivery only. No pickup available.",
+    "processing": "Orders are shipped within 3 days of ordering. Transit time is additional.",
+    "payment": "Zelle or PayPal. Message us on Instagram to confirm payment details.",
+    "returns": "Return requests are reviewed case by case, depending on the item and situation. Message us on Instagram to discuss your order."
+  },
+  "order_steps": [
+    "Screenshot your favorite item.",
+    "Message us on Instagram to confirm availability, sizing, delivery charges, and your order total.",
+    "Confirm payment and delivery details with us."
+  ],
+  "faqs": [
+    {
+      "question": "How do I choose my bangle size?",
+      "answer": "Message us on Instagram with the item you like and your usual bangle size. We will help confirm the available sizes."
+    },
+    {
+      "question": "How should I store my henna cones?",
+      "answer": "Message us for the storage instructions and ingredients for the specific cone before ordering."
+    }
+  ]
+}
