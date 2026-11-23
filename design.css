@@ -2,7 +2,8 @@
 :root{--naf-blush:BLUSH_COLOR;--naf-ink:TEXT_COLOR;--naf-gold:ACCENT_COLOR;--naf-rose:#9c5765;--naf-paper:#fffdf9}
 .stApp{background:radial-gradient(ellipse at 12% 5%,#e4b3b871,transparent 45%),radial-gradient(ellipse at 92% 60%,#cbb48029,transparent 45%),#f4eeea;color:var(--naf-ink);font-family:'DM Sans',sans-serif}
 header[data-testid="stHeader"]{background:transparent!important;height:2rem}
-[data-testid="stMainBlockContainer"],.block-container{max-width:580px!important;margin:36px auto!important;padding:25px 32px 18px!important;background:var(--naf-paper);border:1px solid #d1bc9c69;border-radius:22px;box-shadow:0 22px 85px #5f363314;overflow:hidden}
+[data-testid="stMain"]{overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+[data-testid="stMainBlockContainer"],.block-container{max-width:580px!important;margin:36px auto!important;padding:25px 32px 18px!important;background:var(--naf-paper);border:1px solid #d1bc9c69;border-radius:22px;box-shadow:0 22px 85px #5f363314;overflow:visible!important;flex-shrink:0!important;height:auto!important}
 [data-testid="stVerticalBlock"]{gap:0!important}
 .naf-topline{display:flex;justify-content:space-between;gap:12px;font:10px/1.5 'DM Sans',sans-serif;letter-spacing:.16em;color:var(--naf-gold);padding-bottom:17px;border-bottom:1px solid #d9c6ac8c}
 .naf-hero{position:relative;text-align:center;padding:33px 15px 27px;isolation:isolate}
