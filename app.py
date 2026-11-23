@@ -13,11 +13,13 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode, urlparse
 from urllib.request import Request, urlopen
 
+from owner_features import EXTRA, clean_extra, owner_fields, analytics_panel
+
 DEFAULT = {
     "name": "NAF by Nafees",
     "tagline": "A little tradition. A little sparkle. All you.",
     "description": "Bangles, jhumkas, bracelets, henna cones, and hair accessories for everyday beauty and special occasions.",
-    "email": "nafbynafees@gmail.com", "phone": "", "public_url": "",
+    "email": "nafbynafees@gmail.com", "phone": "", "public_url": "https://naf-business-card.streamlit.app/",
     "background": "#F4E3E3", "foreground": "#302722", "accent": "#70552C",
     "logo": "", "apple_wallet": "", "samsung_wallet": "",
     "links": [
@@ -25,6 +27,7 @@ DEFAULT = {
         {"label": "TikTok", "url": "https://www.tiktok.com/@nafbynafees", "visible": True},
     ],
 }
+DEFAULT.update(copy.deepcopy(EXTRA))
 
 
 def https_url(value):
@@ -77,6 +80,9 @@ def validate(data):
             raise ValueError("Each link needs a label of up to 80 characters.")
         links.append({"label": label, "url": https_url(url), "visible": bool(row.get("visible", True))})
     result["links"] = links
+    result.update(clean_extra(result, https_url))
+    if len(json.dumps(result).encode()) > 900000:
+        raise ValueError("Please use smaller photos; the complete card must stay under 900 KB.")
     return result
 
 
@@ -191,12 +197,12 @@ def main():
         except (RuntimeError, ValueError, KeyError, json.JSONDecodeError):
             st.error("The card is temporarily unavailable. Please refresh in a moment.")
             st.stop()
-        render_card(st, data)
+        render_card(st, data, store)
 
 
-def render_card(st, data):
+def render_card(st, data, store=None, preview=False):
     from card_design import render_card as render_branded_card
-    render_branded_card(st, data, vcard)
+    render_branded_card(st, data, vcard, store=store, preview=preview)
 
 
 def render_admin(st, store, settings):
@@ -226,6 +232,7 @@ def render_admin(st, store, settings):
     if not store.ready:
         st.warning("Configure the GitHub repository and token in Streamlit Secrets to enable durable saving.")
         return
+    analytics_panel(st, store)
     if st.button("Reload saved card"):
         st.session_state.pop("editor_data", None)
         st.session_state.pop("editor_sha", None)
@@ -261,11 +268,11 @@ def render_admin(st, store, settings):
             column_config={"label": st.column_config.TextColumn("Button label", required=True),
                            "url": st.column_config.TextColumn("HTTPS destination", required=True),
                            "visible": st.column_config.CheckboxColumn("Visible", default=True)}, key=f"links_{version}")
-        st.subheader("Wallet passes")
-        st.caption("These fields connect issued wallet passes. This app does not issue, sign, or automatically update passes saved in a wallet. Leave blank until tested; no wallet button will appear.")
-        data["apple_wallet"] = st.text_input("Apple Wallet pass download / issuer link", data["apple_wallet"])
-        data["samsung_wallet"] = st.text_input("Samsung Wallet Add to Wallet link", data["samsung_wallet"])
-        save = st.form_submit_button("Save changes to GitHub", type="primary")
+        try:
+            data = owner_fields(st, data, version)
+        except (ValueError, OSError) as error:
+            st.error(str(error))
+        save = st.form_submit_button("Preview changes", type="primary")
     if save:
         try:
             if remove_logo:
@@ -273,15 +280,32 @@ def render_admin(st, store, settings):
             elif upload:
                 data["logo"] = logo_data(upload)
             data = validate(data)
-            store.save(data, st.session_state.editor_sha)
+            st.session_state.pending_card = copy.deepcopy(data)
+            st.session_state.pending_sha = st.session_state.editor_sha
         except (RuntimeError, ValueError, OSError) as error:
             st.error(str(error))
         else:
-            st.session_state.pop("editor_data", None)
-            st.session_state.pop("editor_sha", None)
-            st.session_state.editor_version = version + 1
-            st.session_state.saved_notice = True
+            st.success("Preview ready. Review the card below, then publish when you are satisfied.")
+    if st.session_state.get("pending_card"):
+        st.subheader("Preview — not published")
+        render_card(st, st.session_state.pending_card, preview=True)
+        left, right = st.columns(2)
+        if left.button("Publish preview", type="primary"):
+            try:
+                store.save(st.session_state.pending_card, st.session_state.pending_sha)
+            except (RuntimeError, ValueError) as error:
+                st.error(str(error))
+            else:
+                for key in ("editor_data","editor_sha","pending_card","pending_sha"):
+                    st.session_state.pop(key, None)
+                st.session_state.editor_version = version + 1
+                st.session_state.saved_notice = True
+                st.rerun()
+        if right.button("Discard preview"):
+            st.session_state.pop("pending_card",None)
+            st.session_state.pop("pending_sha",None)
             st.rerun()
+
 
 
 if __name__ == "__main__":
