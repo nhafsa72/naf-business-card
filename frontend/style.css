@@ -56,3 +56,8 @@ main{padding:0 18px 15px}
 /* Collection photos keep their portrait composition at every screen width. */
 .collection-photo{margin:0;min-width:0}
 .collection-photo img{height:auto}
+
+/* A compact three-photo invitation to the full Collection panel. */
+.home-collection-preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%;max-width:340px;margin:12px auto 0;padding:9px;border:1px solid #e4d0c2;border-radius:14px;background:#f8eeea}
+.home-collection-preview img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;object-position:center;border-radius:8px}
+.home-collection-preview:hover{background:#f4e3e3;border-color:#c5a97e}
