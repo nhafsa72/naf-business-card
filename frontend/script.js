@@ -5,11 +5,9 @@ function event(kind){if(config?.preview)return;send('streamlit:setComponentValue
 function text(tag,value,className=''){const e=document.createElement(tag);e.textContent=value;e.className=className;return e;}
 function safeUrl(value){try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password?u.href:null;}catch{return null;}}
 function anchor(label,url,cls,eventKind='social'){const a=text('a',label,cls);a.href=safeUrl(url)||'https://www.instagram.com/nafbynafees/';a.target='_blank';a.rel='noopener noreferrer';a.addEventListener('click',()=>event(eventKind));return a;}
-function setTab(id,focus=false){activeTab=id;document.querySelectorAll('[role=tabpanel]').forEach(p=>p.hidden=p.id!==id);document.querySelectorAll('[role=tab]').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.tab===id));b.tabIndex=b.dataset.tab===id?0:-1});$('content').scrollTop=0;if(focus)$('tab-'+id).focus();else if($('navigation')?.open){$('navigation').open=false;$('navigation').querySelector('summary').focus();}}
+function setTab(id,focus=false){activeTab=id;document.querySelectorAll('[role=tabpanel]').forEach(p=>p.hidden=p.id!==id);document.querySelectorAll('[role=tab]').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.tab===id));b.tabIndex=b.dataset.tab===id?0:-1});$('content').scrollTop=0;if(focus)$('tab-'+id).focus();}
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
 document.querySelectorAll('[role=tab]').forEach(b=>b.addEventListener('keydown',e=>{const tabs=['home','collection','info','share'];let i=tabs.indexOf(activeTab);if(['ArrowRight','ArrowLeft','ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?3:(i+(['ArrowRight','ArrowDown'].includes(e.key)?1:3))%4;setTab(tabs[next],true)}}));
-document.addEventListener('click',e=>{const menu=$('navigation');if(menu.open&&!menu.contains(e.target))menu.open=false;});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('navigation').open){$('navigation').open=false;$('navigation').querySelector('summary').focus();}});
 const icons={instagram:'<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/>',tiktok:'<path d="M14 3v12a4 4 0 1 1-4-4M14 3c0 4 3 6 6 6"/>',other:'<path d="m10 8 3-3a5 5 0 0 1 7 7l-3 3M14 16l-3 3a5 5 0 0 1-7-7l3-3M8 16l8-8"/>'};
 
 // Convert venue-local times to UTC, including daylight saving transitions.
