@@ -64,7 +64,7 @@ function renderEventCard(entry,teaser=false,showTimer=false){
   top.append(text('span',state==='ended'?'EVENT ENDED':state==='live'?'HAPPENING NOW':'MEET US IN PERSON','event-eyebrow'));
   const badges=text('div','','event-badges');
   if(showTimer){
-    const timer=text('span','','event-timer-badge');timer.id='event-countdown';
+    const timer=text('span','','event-timer-badge');timer.dataset.start=String(+entry.start);timer.dataset.end=String(+entry.end);timer.dataset.eventName=item.name;
     timer.setAttribute('role','timer');timer.setAttribute('aria-live','off');badges.append(timer);
   }
   if(item.booth)badges.append(text('span','STALL '+item.booth,'event-booth'));
@@ -86,7 +86,7 @@ function renderEventCard(entry,teaser=false,showTimer=false){
   return box;
 }
 function updateEvents(card,now=new Date()){
-  const entries=eventEntries(card,now),featured=entries.find(e=>e.state!=='ended');
+  const entries=eventEntries(card,now);
   const signature=JSON.stringify([card.upcoming_events??card.upcoming_event,entries.map(e=>[e.item.name,e.state]),eventsExpanded]);
   const container=$('upcoming-events');
   if(signature!==eventSignature){
@@ -94,9 +94,9 @@ function updateEvents(card,now=new Date()){
     container.replaceChildren();container.hidden=!entries.length;
     const stack=text('div','','event-stack'+(eventsExpanded?' is-expanded':'')+(!eventsExpanded&&entries.length>1?' has-more':''));
     stack.id='event-cards';
-    if(eventsExpanded)entries.forEach(entry=>stack.append(renderEventCard(entry,false,entry===featured)));
+    if(eventsExpanded)entries.forEach(entry=>stack.append(renderEventCard(entry,false,entry.state!=='ended')));
     else{
-      stack.append(renderEventCard(entries[0],false,entries[0]===featured));
+      if(entries.length)stack.append(renderEventCard(entries[0],false,entries[0].state!=='ended'));
       if(entries.length>1)stack.append(renderEventCard(entries[1],true));
     }
     container.append(stack);
@@ -107,12 +107,12 @@ function updateEvents(card,now=new Date()){
       container.append(toggle);
     }
   }
-  const timer=$('event-countdown');
-  if(timer&&featured){
-    const values=countdownParts(featured.start,now);
-    timer.textContent=featured.state==='live'?'Live now':String(values[0]).padStart(2,'0')+'d '+values.slice(1).map(v=>String(v).padStart(2,'0')).join(':');
-    timer.setAttribute('aria-label',featured.state==='live'?featured.item.name+' is happening now':featured.item.name+' starts in '+values[0]+' days, '+values[1]+' hours, '+values[2]+' minutes, '+values[3]+' seconds');
-  }
+  container.querySelectorAll('.event-timer-badge').forEach(timer=>{
+    const start=new Date(Number(timer.dataset.start)),end=new Date(Number(timer.dataset.end)),name=timer.dataset.eventName;
+    const live=now>=start&&now<end,ended=now>=end,values=countdownParts(start,now);
+    timer.textContent=ended?'Event ended':live?'Live now':String(values[0]).padStart(2,'0')+'d '+values.slice(1).map(v=>String(v).padStart(2,'0')).join(':');
+    timer.setAttribute('aria-label',ended?name+' has ended':live?name+' is happening now':name+' starts in '+values[0]+' days, '+values[1]+' hours, '+values[2]+' minutes, '+values[3]+' seconds');
+  });
 }
 setInterval(()=>{if(config)updateEvents(config.card)},1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&config)updateEvents(config.card)});
