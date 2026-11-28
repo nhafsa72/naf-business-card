@@ -47,7 +47,7 @@ function countdownParts(start,now){
   const minutes=Math.floor(seconds/60);seconds%=60;
   return [days,hours,minutes,seconds];
 }
-function renderEventCard(entry,teaser=false){
+function renderEventCard(entry,teaser=false,showTimer=false){
   const {item,state}=entry,zone=item.timezone||'America/Chicago';
   const box=text('aside','','event-card'+(state==='ended'?' event-ended':'')+(teaser?' event-teaser':''));
   box.dataset.eventName=item.name;
@@ -56,7 +56,13 @@ function renderEventCard(entry,teaser=false){
   if(teaser){box.append(text('p',(state==='ended'?'Event ended · ':'Next · ')+item.name,'event-peek'));return box;}
   const top=text('div','','event-top');
   top.append(text('span',state==='ended'?'EVENT ENDED':state==='live'?'HAPPENING NOW':'MEET US IN PERSON','event-eyebrow'));
-  if(item.booth)top.append(text('span','STALL '+item.booth,'event-booth'));
+  const badges=text('div','','event-badges');
+  if(showTimer){
+    const timer=text('span','','event-timer-badge');timer.id='event-countdown';
+    timer.setAttribute('role','timer');timer.setAttribute('aria-live','off');badges.append(timer);
+  }
+  if(item.booth)badges.append(text('span','STALL '+item.booth,'event-booth'));
+  top.append(badges);
   const body=text('div','','event-body'),badge=text('div','','event-date-badge'),copy=text('div','','event-copy');
   const day=new Date(item.date+'T12:00:00Z');
   badge.append(text('span',day.toLocaleDateString('en-US',{month:'short',timeZone:'UTC'}).toUpperCase()),text('strong',day.toLocaleDateString('en-US',{day:'numeric',timeZone:'UTC'})));
@@ -80,19 +86,11 @@ function updateEvents(card,now=new Date()){
   if(signature!==eventSignature){
     eventSignature=signature;calendarUrls.forEach(u=>URL.revokeObjectURL(u));calendarUrls=[];
     container.replaceChildren();container.hidden=!entries.length;
-    if(featured){
-      const countdown=text('div','','event-countdown');countdown.id='event-countdown';
-      countdown.setAttribute('role','timer');countdown.setAttribute('aria-live','off');
-      countdown.append(text('p','','countdown-heading'));
-      const digits=text('div','','countdown-digits');
-      ['Days','Hours','Minutes','Seconds'].forEach(label=>{const cell=text('div','','countdown-cell');cell.append(text('strong','00'),text('span',label));digits.append(cell);});
-      countdown.append(digits);container.append(countdown);
-    }
     const stack=text('div','','event-stack'+(eventsExpanded?' is-expanded':'')+(!eventsExpanded&&entries.length>1?' has-more':''));
     stack.id='event-cards';
-    if(eventsExpanded)entries.forEach(entry=>stack.append(renderEventCard(entry)));
+    if(eventsExpanded)entries.forEach(entry=>stack.append(renderEventCard(entry,false,entry===featured)));
     else{
-      stack.append(renderEventCard(entries[0]));
+      stack.append(renderEventCard(entries[0],false,entries[0]===featured));
       if(entries.length>1)stack.append(renderEventCard(entries[1],true));
     }
     container.append(stack);
@@ -105,10 +103,8 @@ function updateEvents(card,now=new Date()){
   }
   const timer=$('event-countdown');
   if(timer&&featured){
-    timer.querySelector('.countdown-heading').textContent=featured.state==='live'?'Happening now · '+featured.item.name:'Countdown to '+featured.item.name;
-    const digits=timer.querySelector('.countdown-digits');digits.hidden=featured.state==='live';
     const values=countdownParts(featured.start,now);
-    timer.querySelectorAll('.countdown-cell strong').forEach((el,i)=>el.textContent=String(values[i]).padStart(2,'0'));
+    timer.textContent=featured.state==='live'?'Live now':String(values[0]).padStart(2,'0')+'d '+values.slice(1).map(v=>String(v).padStart(2,'0')).join(':');
     timer.setAttribute('aria-label',featured.state==='live'?featured.item.name+' is happening now':featured.item.name+' starts in '+values[0]+' days, '+values[1]+' hours, '+values[2]+' minutes, '+values[3]+' seconds');
   }
 }
