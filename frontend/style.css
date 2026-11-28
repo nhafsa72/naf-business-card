@@ -117,3 +117,7 @@ header .logo img{display:block;width:100%;height:100%;object-fit:contain}
 .event-actions a{display:flex;align-items:center;justify-content:center;gap:7px;line-height:1.3}
 .event-action-icon{display:inline-flex;flex:0 0 18px;align-items:center;justify-content:center}
 .event-action-icon svg{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+/* Keep the signature headline on one compact line, with its original styling. */
+#home .hero{container-type:inline-size}
+#home .hero h2{font-size:clamp(16px,5.6cqw,28px);line-height:1.2;white-space:nowrap;margin:8px 0 10px}
