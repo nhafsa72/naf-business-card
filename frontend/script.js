@@ -47,6 +47,12 @@ function countdownParts(start,now){
   const minutes=Math.floor(seconds/60);seconds%=60;
   return [days,hours,minutes,seconds];
 }
+function eventActionIcon(link,kind){
+  const icon=document.createElement('span');icon.className='event-action-icon';icon.setAttribute('aria-hidden','true');
+  const paths=kind==='directions'?'<path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>':'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M12 14v4m-2-2h4"/>';
+  icon.innerHTML='<svg viewBox="0 0 24 24" focusable="false">'+paths+'</svg>';
+  link.prepend(icon);return link;
+}
 function renderEventCard(entry,teaser=false,showTimer=false){
   const {item,state}=entry,zone=item.timezone||'America/Chicago';
   const box=text('aside','','event-card'+(state==='ended'?' event-ended':'')+(teaser?' event-teaser':''));
@@ -72,8 +78,8 @@ function renderEventCard(entry,teaser=false,showTimer=false){
   body.append(badge,copy);box.append(top,body);
   if(state!=='ended'&&!teaser){
     const actions=text('div','','event-actions');
-    actions.append(anchor('Get Directions','https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(item.venue+', '+item.address),''));
-    const calendar=text('a','Add to Calendar');calendar.href=URL.createObjectURL(new Blob([calendarText(item)],{type:'text/calendar;charset=utf-8'}));calendarUrls.push(calendar.href);calendar.download=item.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.ics';actions.append(calendar);
+    actions.append(eventActionIcon(anchor('Get Directions','https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(item.venue+', '+item.address),''),'directions'));
+    const calendar=text('a','Add to Calendar');calendar.href=URL.createObjectURL(new Blob([calendarText(item)],{type:'text/calendar;charset=utf-8'}));calendarUrls.push(calendar.href);calendar.download=item.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.ics';actions.append(eventActionIcon(calendar,'calendar'));
     const details=safeUrl(item.details_url);if(details)actions.append(anchor('Event Details',details,''));
     box.append(actions);
   }
